@@ -138,3 +138,34 @@ dsh --profile <scratch> --from-default-profile web --dump-config
 # 无 skippedBundles 表示未被版本闸门拒绝
 ```
 NaN
+
+## 11. 历史遗留单独成档
+
+一个真实项目里出现了 37 个 `待处理`：全部是 `3/7` + `✕3`，模式完全一致——
+缺 `TASK-KNOWLEDGE`/`TASK-REVIEW`/`TASK-FINAL`，即**收尾三任务规范确立之前**建的 change。
+
+37 行并列等于没有信息。因此：
+
+- **判据**：任务清单里三个收尾任务**一个都没有** → `legacy`；缺一两个的仍然是真问题。
+- **优先级**：`legacy` 在 `kindOf` 里**先于** pending/done 判断，否则它们会落进 pending。
+- **噪音**：三个全缺时只报一条 warn，不再报三条 error。
+- **位置**：渲染在当前 / 待处理 / 已完成之后，默认收起，摘要行显示 `N 历史`。
+
+验证（合成 5 个 change）：
+
+```
+active   curr           stages=2/7
+pending  real-pending   stages=4/7  issues=（阶段未走完但零 error，仍进待处理）
+legacy   legacy-one     stages=3/7  issues=ww
+legacy   legacy-two     stages=3/7  issues=ww
+bands: {"active":1,"pending":2,"legacy":2}
+```
+
+注意 `real-pending` 那条：**零 error 但阶段没走完，仍然算待处理**——
+"有遗留"不等于"报错"，这是这个分档的关键。
+
+## 12. 面板必须自己滚动
+
+侧栏 tab 容器是定高的，内容溢出会被裁掉而不是出现滚动条。根节点必须显式声明
+`height: 100%; minHeight: 0; overflowY: auto; boxSizing: border-box`，
+否则 37 条待处理只能看到前 20 个，且无法下拉。
