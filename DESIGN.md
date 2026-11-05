@@ -169,3 +169,27 @@ bands: {"active":1,"pending":2,"legacy":2}
 侧栏 tab 容器是定高的，内容溢出会被裁掉而不是出现滚动条。根节点必须显式声明
 `height: 100%; minHeight: 0; overflowY: auto; boxSizing: border-box`，
 否则 37 条待处理只能看到前 20 个，且无法下拉。
+
+## 13. 枚举上限吃掉活跃 change
+
+一个项目有 40+ 个 change 时，面板显示"无活跃 change"，而 37 待处理 + 3 已完成 = **正好 40**。
+原因：`MAX_CHANGES = 40` 截断了目录枚举，而**活跃 change 恰好被截在门外**。
+
+计数本身就是证据：`changes` 里若含活跃项，摘要应是 `(pending + done) = 39`；
+既然等于 40，说明活跃项根本不在列表里。
+
+修复两条，缺一不可：
+
+1. 上限 40 → 200（远高于任何真实项目）
+2. **活跃 change 永不参与截断**——枚举后若 `activeId` 不在名单里，显式补上
+
+验证（50 个 change，活跃项排在最后）：
+
+```
+changes enumerated: 50 | activeId: zz-last
+bands: {"active":1,"legacy":49}
+active present: true
+```
+
+教训：**任何"上限"都必须先保住当前正在看的那一项**。截断是给病态数据兜底的，
+不是用来决定"哪几项重要"的。
