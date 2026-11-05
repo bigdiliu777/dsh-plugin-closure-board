@@ -137,3 +137,4 @@ dsh --profile <scratch> --from-default-profile web --dump-config
 # 输出出现 "# == dsh-plugin-closure-board" 与 "- id: closure-board" 即为成功
 # 无 skippedBundles 表示未被版本闸门拒绝
 ```
+NaN
