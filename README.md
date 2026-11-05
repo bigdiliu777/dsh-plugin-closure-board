@@ -78,6 +78,57 @@ mklink /J "%USERPROFILE%\.dsh\profiles\<profile>\node_modules\dsh-plugin-closure
 > 本包同时是 bundle（自带 `cordis.patch.yml`）。手工 patch 与「选择组合包」
 > 两种方式**只能二选一**，否则同一 id 会重复插入。
 
+### 从界面安装失败时的排查
+
+仓库地址安装已在隔离 profile 里**端到端验证**过：
+
+```
+dsh plugin --profile <scratch> add -w github:bigdiliu777/dsh-plugin-closure-board
+→ + dsh-plugin-closure-board 0.1.0
+→ dsh.profile.bundles 自动追加该包
+→ dsh --profile <scratch> --dump-config 出现 "# == dsh-plugin-closure-board"
+→ 无 skippedBundles（未被版本闸门拒绝）
+```
+
+界面走的是 `installBundle` 服务，与原始 pnpm 命令不完全相同。若遇到下列报错，按对应方式处理。
+
+#### `ERR_PNPM_ADDING_TO_ROOT`
+
+```
+Running this command will add the dependency to the workspace root,
+which might not be what you want...
+```
+
+profile 的 `pnpm-workspace.yaml` 含 `packages: [.]`，pnpm 因此拒绝往 workspace 根添加依赖。
+在该文件追加：
+
+```yaml
+ignore-workspace-root-check: true
+```
+
+或改用 CLI 显式带 `-w`：
+
+```powershell
+dsh plugin --profile <profile> add -w github:bigdiliu777/dsh-plugin-closure-board
+```
+
+#### `git-hosted plugins build on install via their prepare script`
+
+pnpm 11 默认拦截依赖的构建脚本。本包**没有** `prepare` / `build` 脚本，通常不会触发；
+若触发，pnpm 会打印需要批准的精确键，按提示加到 profile 的 `pnpm-workspace.yaml` 后重试：
+
+```yaml
+allowBuilds:
+  - dsh-plugin-closure-board
+```
+
+#### 装完看不到面板
+
+1. 确认 profile 的 `package.json` 里 `dsh.profile.bundles` 出现了 `dsh-plugin-closure-board`
+2. 确认 `node_modules/dsh-plugin-closure-board/lib/client.js` 存在
+3. 重启 DSH —— bundle 选择变更不一定热生效
+4. 仍不行 → 见下方「兼容性」里的四步自查
+
 ## 兼容性
 
 依赖 DSH 的浏览器插件契约：`window.__ModuleLoader__.load`、平台模块表里的 `react`，
