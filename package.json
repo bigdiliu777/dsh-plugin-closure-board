@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-closure-board",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Closure workflow board for DSH: stage progress and tasks.md checklist in the right sidebar",
   "type": "module",
   "main": "lib/index.js",
