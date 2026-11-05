@@ -25,5 +25,20 @@
     "lib/client.js",
     "cordis.patch.yml",
     "DESIGN.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bigdiliu777/dsh-plugin-closure-board.git"
+  },
+  "homepage": "https://github.com/bigdiliu777/dsh-plugin-closure-board#readme",
+  "bugs": {
+    "url": "https://github.com/bigdiliu777/dsh-plugin-closure-board/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "openspec",
+    "closure"
   ]
 }
