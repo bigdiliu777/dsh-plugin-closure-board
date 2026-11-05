@@ -129,6 +129,45 @@ allowBuilds:
 3. 重启 DSH —— bundle 选择变更不一定热生效
 4. 仍不行 → 见下方「兼容性」里的四步自查
 
+## 更新
+
+插件是**安装时的一份副本**，不是软链到 GitHub。仓库更新后，已安装的实例不会自动跟随。
+
+### UI
+
+1. 插件页 → 红色按钮 **卸载**
+2. 插件列表 → **添加插件** → 粘贴同一个地址 → 安装
+3. 确认插件页版本号变成预期版本
+
+### CLI
+
+```powershell
+dsh plugin --profile <profile> remove -w dsh-plugin-closure-board
+dsh plugin --profile <profile> add -w github:bigdiliu777/dsh-plugin-closure-board#v0.2.1
+```
+
+**必须先卸载**：`github:` 依赖会在 `pnpm-lock.yaml` 里固定成某个 commit SHA，
+spec 不变时 pnpm 认为已满足，直接重装很可能拿不到新代码。
+
+带 `#v0.2.1` 让版本可复现；不带则跟随默认分支 HEAD。
+
+### 怎么确认真的更新了
+
+插件页的版本号**可能来自启动时的清单缓存**。更可靠的判断是打开面板，看底部：
+
+```
+closure-board v0.2.1                        <kit 根目录>
+```
+
+这个数字是编译进 bundle 的常量，面板显示什么版本，跑的就是什么版本。
+
+> 发版时注意：`package.json` 的 `version` 与 `lib/client.js` 里的 `VERSION` 必须同步。
+
+### 开发态（本机软链）
+
+如果 profile 里是指向源码的 junction，代码永远实时生效，无需"更新"；
+只有面板底部那个版本号需要重启 DSH 才会刷新。
+
 ## 多个 change 的组织
 
 一个长会话会连续做多个 change。面板**按项目列出全部 change**，而不是只显示当前那一个——
