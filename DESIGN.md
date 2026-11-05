@@ -327,3 +327,28 @@ round  5.. : cached 30/30    io=5    ← 稳态：只剩活跃项要读
 
 稳态每轮 5 次 IO = 会话状态 + 活跃 change 的 proposal/tasks/归档探测 + 目录列举。
 **这就是应有形态：一直盯的只有正在做的那一个。**
+
+## 19. 切换 change 时缓存里的"幽灵当前"
+
+缓存是按 changeId 存的快照，而快照里带有**只在它是活跃项时才成立**的字段：
+`isActive`、`activeTask`、`blocker`，以及由 session 推出的 `closed`。
+
+session 一旦切到新 change：
+
+- 新 change：下一轮必扫、必然重建 → 2 秒内出现（`session-state.json` 从不缓存）
+- 旧 change：缓存里仍是 `isActive: true`，而 TTL 是 **5 分钟**
+
+于是面板上会出现**两个"当前"**，最多持续 5 分钟；UI 取 `changes.filter(isActive)[0]`，
+甚至可能显示错的那一个。
+
+修正：每轮开始先做一次"降级清理"——缓存条目若 `isActive` 但已不是当前活跃项，
+**直接删除并排到队首重建**（只多读 1 个 change）。
+
+验证（同一进程内把 active 从 alpha 切到 beta）：
+
+```
+before switch | active=["alpha"] | alpha.activeTask="TASK-001"
+after  switch | active=["beta"]  | alpha.activeTask=""        ← 已被降级重建
+```
+
+**教训：缓存的不只是数据，还有"它当时是什么角色"。角色会变，缓存必须跟着失效。**
