@@ -1,0 +1,4 @@
+# closure-board bundle patch: one insert over the profile root.
+- insert:
+    - id: closure-board
+      name: dsh-plugin-closure-board

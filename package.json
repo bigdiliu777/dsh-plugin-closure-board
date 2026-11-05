@@ -1,0 +1,29 @@
+{
+  "name": "dsh-plugin-closure-board",
+  "version": "0.1.0",
+  "description": "Closure workflow board for DSH: stage progress and tasks.md checklist in the right sidebar",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.5"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "DESIGN.md"
+  ]
+}
