@@ -352,3 +352,45 @@ after  switch | active=["beta"]  | alpha.activeTask=""        ← 已被降级�
 ```
 
 **教训：缓存的不只是数据，还有"它当时是什么角色"。角色会变，缓存必须跟着失效。**
+
+## 20. 缓存被"目录不见了"的判断整锅端掉
+
+用户看到缓存数字在 **1 ↔ 274** 之间反复横跳。两个独立原因：
+
+### 20.1 按"不在列表里"删缓存
+
+```js
+if (!live.has(changeName)) changeCache.delete(key);   // ← 灾难
+```
+
+`listChangeNames` 在异常时返回空列表，于是 `live` 为空，**整锅缓存被当成"275 个目录全删了"**。
+下一轮从零开始扫，数字就掉到 1。
+
+修正：
+
+- **列表为空但手里有缓存 → 判定为传输抖动**，直接拿缓存出图，不做任何删除
+- 只有 `buildChange` 明确读不到内容时，才删除那一条（这是唯一能证明"目录没了"的证据）
+
+### 20.2 两个轮询者在抢同一份缓存
+
+`OpenButton`（常驻）和 `BoardBody`（tab 打开时）各自 `usePoll`，
+两个 `collect` 循环交错执行，远程读取量翻倍，缓存状态互相覆盖。
+
+修正：**只由常驻的 header 按钮轮询**，tab 正文纯订阅。
+
+### 20.3 顺带修的阈值
+
+`cachedCount >= names.names.length` 要求**恰好全满**才切到 5 分钟 TTL；
+275 个里少一个就永远停在 30 秒档。改成 `>= size - SCAN_PER_ROUND`。
+
+验证（第 5、6 轮模拟 listing 抛错）：
+
+```
+round 1 [正常]        : cached  9/30
+round 4 [正常]        : cached 30/30
+round 5 [listing 抖动]: cached 30/30   ← 不再归零
+round 6 [listing 抖动]: cached 30/30
+round 7 [正常]        : cached 30/30
+```
+
+**教训：缓存只能被"证实的否定"删除，不能被"缺席"删除。**
