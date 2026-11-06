@@ -442,3 +442,37 @@ lite-change    docs= ["tasks.md","proposal.md"]
 ✓提案 ✓拆分 ✓实施 ✓知识 ✓审批 ○验收 ○收口
 tasks.md · proposal.md · design.md · issues.md
 ```
+
+## 22. 每轮发布两次，把面板闪成两半
+
+为了让"当前 change 尽快出现"，v0.2.8 起每轮发布两次：
+
+```
+读到当前 change → 发布局部快照（changes = [当前]）
+扫完           → 发布完整快照（changes = [当前, 其余 274 个]）
+```
+
+本机两次发布间隔几毫秒，看不出来。**远程慢盘上间隔好几秒**，于是：
+
+- 数字在 `1/286` 和 `274/275` 之间来回跳
+- 局部快照里 `changes` 只有 1 个 → **待处理 / 已完成 / 历史 三档整个消失**
+- 用户正要点开"待处理"时它被冲掉，循环往复
+
+修正：**只允许首屏发布局部快照**，之后每轮只发布最终结果。
+
+```js
+if (!feed.data) publishFeed({ phase: "ready", data: partial });
+```
+
+验证（30 个 change）：
+
+```
+partial  changes=  1 total=30   ← 仅首屏一次
+round1   changes=  9 total=30
+round2   changes= 17 total=30
+round3   changes= 25 total=30
+round4   changes= 30 total=30   ← 单调上升，不再回退
+```
+
+**教训：增量的目的是"更快看到"，不是"每轮都说一次'我还只有一点点'"。
+一旦已经发布过完整内容，就不该再发布比它更少的快照。**
