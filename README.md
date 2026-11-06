@@ -42,6 +42,10 @@ kit 根按 `""` → `.closure-kit/` 顺序探测，所以既能用于已迁移�
 - `active_task` 不在 `tasks.md` 里
 - 缺少固定收尾三任务、缺少 `## 验收标准`、缺少 `## 变更记忆`、change-memory 未登记
 
+**点开 change 的文件**：展开任意 change 后，阶段条下方会出现它的文档链接
+（`tasks.md` / `proposal.md` / `design.md` / `issues.md`，**存在才显示**），
+点击在右栏打开文档预览。`issues.md` 不是标准文件，只有该 change 真的有遗留问题时才存在。
+
 **阶段诚实性**：阶段有 error 时不会显示绿勾，而是降级为 amber `⚠` 并标注原因；
 `收口` 要求 session closed **且** `TASK-FINAL` 已勾选。
 

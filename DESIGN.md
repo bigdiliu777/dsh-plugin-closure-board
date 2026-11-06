@@ -394,3 +394,51 @@ round 7 [正常]        : cached 30/30
 ```
 
 **教训：缓存只能被"证实的否定"删除，不能被"缺席"删除。**
+
+## 21. 点击 change 名字跳转文件：只能到"文件"，到不了"目录"
+
+DSH 的文件树（`files` tab）类型定义只有 `{ id, kind, priority, title, guide }`，
+整个 bundle 里 `navigation` / `params` **零命中**——它是"页类型"，只能按 kind 打开，
+不接受地址或参数。所以**程序无法让文件树展开到某个目录**。
+
+文件预览则完全可行，这也是 DSH 自己点文件时走的路：
+
+```js
+tabActions.openResource(fileAddressFor(sessionId, cwd, path));
+// → dsh-resource://file/session/<sessionId>/openspec/changes/<id>/tasks.md
+```
+
+插件里调用同一个控制器即可：
+
+```js
+ctx.sidebarRight.openResource("dsh-resource://file/session/" + sid + "/" + relativePath);
+```
+
+### 链接哪些文件
+
+按 `change-file-format.md` 的真实契约，而不是凭印象：
+
+| 文件 | 何时存在 |
+| --- | --- |
+| `tasks.md` | 必选 |
+| `proposal.md` | 必选 |
+| `design.md` | `full` 必选，standard/lite 可选 |
+| `issues.md` | **仅在发现问题时创建**，不是标准文件 |
+
+第一版把 `issues.md` 与三者并列是错的，被用户当场指出来。现在只有它**存在**时才渲染链接，
+不存在就不出现，避免点了报错。
+
+```
+full-change    docs= ["tasks.md","proposal.md","design.md","issues.md"]
+lite-change    docs= ["tasks.md","proposal.md"]
+```
+
+### 交互取舍
+
+点击 change 名字仍然是**展开/收起**（不改成导航，否则要另找地方放展开）。
+文件链接放在阶段条下方一行，只在展开后出现：
+
+```
+✓提案 ✓拆分 ✓实施 ✓知识 ✓审批 ○验收 ○收口
+tasks.md · proposal.md · design.md · issues.md
+```
