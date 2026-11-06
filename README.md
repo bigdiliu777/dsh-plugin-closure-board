@@ -165,7 +165,14 @@ closure-board v0.2.1                        <kit 根目录>
 
 这个数字是编译进 bundle 的常量，面板显示什么版本，跑的就是什么版本。
 
-> 发版时注意：`package.json` 的 `version` 与 `lib/client.js` 里的 `VERSION` 必须同步。
+> 发版时 `package.json` 的 `version` 与 `lib/client.js` 里的 `VERSION` 必须同步，
+> 这一点曾真的漂移过一次（0.2.14）。用仓库里的脚本避免：
+
+```bash
+node scripts/bump.mjs --check        # 检查两处是否一致，漂移则 exit 1
+node scripts/bump.mjs 0.2.16         # 同时改写两处、提交、打标签
+node scripts/bump.mjs 0.2.16 --push  # 再推送分支与标签
+```
 
 ### 开发态（本机软链）
 
